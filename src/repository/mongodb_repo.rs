@@ -7,10 +7,10 @@ use mongodb::{
     results::{ InsertOneResult, UpdateResult, DeleteResult}, //modify here
     sync::{Client, Collection},
 };
-use crate::models::user_model::User;
+use crate::models::order_model::Order;
 
 pub struct MongoRepo {
-    col: Collection<User>,
+    col: Collection<Order>,
 }
 
 impl MongoRepo {
@@ -21,17 +21,20 @@ impl MongoRepo {
             Err(_) => format!("Error loading env variable"),
         };
         let client = Client::with_uri_str(uri).unwrap(); // gets our connection, parse from MONGOURI
-        let db = client.database("rustDB"); // gets a handle to rustDB database
-        let col: Collection<User> = db.collection("User"); // get the db user collection
+        let db = client.database("player_market_db"); // gets a handle to rustDB database
+        let col: Collection<Order> = db.collection("Order"); // get the db user collection
         MongoRepo { col }
     }
 
-    pub fn create_user(&self, new_user: User) -> Result<InsertOneResult, Error> {
-        let new_doc = User {
+    pub fn create_order(&self, new_order: Order) -> Result<InsertOneResult, Error> {
+        let new_doc = Order {
             id: None, // tells mongoDB to auto generate user's id
-            name: new_user.name,
-            location: new_user.location,
-            title: new_user.title,
+            item_name: new_order.item_name,
+            account_name: new_order.account_name,
+            item_number: new_order.item_number,
+            order_amount: new_order.order_amount,
+            type_order: new_order.type_order,
+            order_note: new_order.order_note,
         };
         let user = self
             .col
@@ -41,7 +44,7 @@ impl MongoRepo {
         Ok(user)
     }
 
-    pub fn get_user(&self, id: &String) -> Result<User, Error> {
+    pub fn get_order(&self, id: &String) -> Result<Order, Error> {
         let obj_id = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": obj_id};
         let user_detail = self
@@ -52,16 +55,19 @@ impl MongoRepo {
         Ok(user_detail.unwrap())
     }
 
-    pub fn update_user(&self, id: &String, new_user: User) -> Result<UpdateResult, Error> {
+    pub fn update_order(&self, id: &String, new_order: Order) -> Result<UpdateResult, Error> {
         let obj_id = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": obj_id};
         let new_doc = doc! {
             "$set":
                 {
-                    "id": new_user.id,
-                    "name": new_user.name,
-                    "location": new_user.location,
-                    "title": new_user.title
+                    "id": new_order.id,
+                    "item_name": new_order.item_name,
+                    "account_name": new_order.account_name,
+                    "item_number": new_order.item_number,
+                    "order_amount": new_order.order_amount,
+                    "type_order": new_order.type_order,
+                    "order_note": new_order.order_note
                 },
         };
         let updated_doc = self
@@ -72,7 +78,7 @@ impl MongoRepo {
         Ok(updated_doc)
     }
 
-    pub fn delete_user(&self, id: &String) -> Result<DeleteResult, Error> {
+    pub fn delete_order(&self, id: &String) -> Result<DeleteResult, Error> {
         let obj_id = ObjectId::parse_str(id).unwrap();
         let filter = doc! {"_id": obj_id};
         let user_detail = self
@@ -83,10 +89,23 @@ impl MongoRepo {
         Ok(user_detail)
     }
 
-    pub fn get_all_users(&self) -> Result<Vec<User>, Error> {
+    pub fn get_all_orders(&self) -> Result<Vec<Order>, Error> {
         let cursors = self
             .col
             .find(None, None)
+            .ok()
+            .expect("Error getting list of users");
+        let users = cursors.map(|doc| doc.unwrap()).collect();
+        Ok(users)
+    }
+
+    /// Used to get all orders for a specific account
+    pub fn get_all_account_orders(&self, account_name: &String) -> Result<Vec<Order>, Error> {
+        // let account_name = ObjectId::parse_str(account_name).unwrap();
+        let filter = doc! {"account_name": account_name};
+        let cursors = self
+            .col
+            .find(filter, None)
             .ok()
             .expect("Error getting list of users");
         let users = cursors.map(|doc| doc.unwrap()).collect();
