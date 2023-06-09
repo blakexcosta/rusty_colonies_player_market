@@ -17,6 +17,7 @@ use repository::mongodb_repo::MongoRepo;
 
 #[launch]
 fn rocket() -> _ {
+    // create a connection to a db named "colony" and a collection named "market"
     let db = MongoRepo::init("colony","market");
     rocket::build()
         .manage(db)
