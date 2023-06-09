@@ -16,7 +16,7 @@ pub struct MongoRepo {
 impl MongoRepo {
     // initialization to connect to a new mongo instance, make sure to supply
     // db and col
-    pub fn init() -> Self {
+    pub fn init(db_name: &str, collection_name: &str) -> Self {
         dotenv().ok();
         let uri = match env::var("MONGOURI") {
             Ok(v) => v.to_string(),
@@ -24,8 +24,8 @@ impl MongoRepo {
         };
         let client = Client::with_uri_str(uri).unwrap(); // gets our connection, parse from MONGOURI
         // TODO: Rework db and col to no longer be hardcoded strings, and taken in as arguments
-        let db = client.database("colony"); // gets a handle to rustDB database
-        let col: Collection<Order> = db.collection("market"); // get the db market collection
+        let db = client.database(db_name);//"colony"); // gets a handle to rustDB database
+        let col: Collection<Order> = db.collection(collection_name);//"market"); // get the db market collection
         MongoRepo { col }
     }
 

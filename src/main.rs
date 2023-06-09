@@ -17,7 +17,7 @@ use repository::mongodb_repo::MongoRepo;
 
 #[launch]
 fn rocket() -> _ {
-    let db = MongoRepo::init();
+    let db = MongoRepo::init("colony","market");
     rocket::build()
         .manage(db)
         .mount("/", routes![create_order])
