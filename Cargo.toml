@@ -10,8 +10,13 @@ edition = "2021"
 rocket = {version = "0.5.0-rc.2", features = ["json"]}
 serde = "1.0.136"
 dotenv = "0.15.0"
+rocket_cors = "0.5"
 
 [dependencies.mongodb]
 version = "2.2.0"
 default-features = false
 features = ["sync"]
+
+[dependencies.value-bag]
+version = "1.4.0"
+features = ["serde1"]
